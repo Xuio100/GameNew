@@ -9,9 +9,8 @@ DEALER_MIN_HIT = 17
 INITIAL_POT_AMOUNT = 500
 
 helpers do
-  def calculate_total(cards) # cards is [["H", "3"], ["D", "J"], ... ]
+  def calculate_total(cards) 
     arr = cards.map{|element| element[1]}
-
     total = 0
     arr.each do |a|
       if a == "A"
@@ -21,7 +20,7 @@ helpers do
       end
     end
 
-    #correct for Aces
+  
     arr.select{|element| element == "A"}.count.times do
       break if total <= BLACKJACK_AMOUNT
       total -= 10
@@ -30,7 +29,7 @@ helpers do
     total
   end
 
-  def card_image(card) # ['H', '4']
+  def card_image(card) 
     suit = case card[0]
       when 'H' then 'hearts'
       when 'D' then 'diamonds'
@@ -112,7 +111,7 @@ post '/bet' do
   elsif params[:bet_amount].to_i > session[:player_pot]
     @error = "Bet amount cannot be greater than what you have ($#{session[:player_pot]})"
     halt erb(:bet)
-  else #happy path
+  else 
     session[:player_bet] = params[:bet_amount].to_i
     redirect '/game'
   end
@@ -121,12 +120,12 @@ end
 get '/game' do
   session[:turn] = session[:player_name]
 
-  # create a deck and put it in session
+  
   suits = ['H', 'D', 'C', 'S']
   values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
   session[:deck] = suits.product(values).shuffle! # [ ['H', '9'], ['C', 'K'] ... ]
 
-  # deal cards
+ 
   session[:dealer_cards] = []
   session[:player_cards] = []
   session[:dealer_cards] << session[:deck].pop
@@ -160,18 +159,16 @@ get '/game/dealer' do
   session[:turn] = "dealer"
   @show_hit_or_stay_buttons = false
 
-  # decision tree
+ 
   dealer_total = calculate_total(session[:dealer_cards])
 
   if dealer_total == BLACKJACK_AMOUNT
     loser!("Dealer hit blackjack.")
   elsif dealer_total > BLACKJACK_AMOUNT
     winner!("Dealer busted at #{dealer_total}.")
-  elsif dealer_total >= DEALER_MIN_HIT #17, 18, 19, 20
-    # dealer stays
+  elsif dealer_total >= DEALER_MIN_HIT 
     redirect '/game/compare'
   else
-    # dealer hits
     @show_dealer_hit_button = true
   end
 
